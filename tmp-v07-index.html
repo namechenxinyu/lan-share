@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAN Share</title>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div><h1>LAN Share</h1><div id="selfInfo" class="muted">正在读取本机信息...</div></div>
+    <div><span id="modeBadge" class="badge">LAN only · direct transfer</span></div>
+  </div>
+
+  <div id="browserPairBox" class="pairbox hidden">
+    <strong>此设备已开启安全模式</strong>
+    <div class="muted small" style="margin:6px 0 10px">请输入对方 LAN Share 本机页面上显示的 6 位配对码。验证后此浏览器会获得 30 天访问凭据。</div>
+    <div class="row"><input id="browserPairCode" maxlength="6" placeholder="6 位配对码"><button id="browserPairBtn" class="primary">配对并访问</button></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>发送文件</h2>
+      <div class="row" style="margin-bottom:12px"><label for="target">目标设备</label><select id="target" class="grow"><option value="local">当前设备（保存到共享目录）</option></select></div>
+      <div class="drop" id="drop"><strong>拖拽大文件到这里</strong><div class="muted" style="margin-top:8px">16 MiB 分块、失败自动重试、支持断点续传。已配对设备的 Agent→Agent 分块使用 AES-256-GCM。</div><input id="file" type="file" multiple style="display:none"></div>
+      <div id="progressWrap" class="hidden"><div class="progress"><div class="bar" id="bar"></div></div><div class="speed"><strong id="speedText">0 MB/s</strong><span id="etaText" class="muted"></span></div><canvas id="speedChart" width="700" height="90"></canvas><div class="status" id="uploadStatus"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>局域网设备</h2>
+      <div id="devices"><div class="muted">正在发现设备...</div></div>
+      <div id="remoteFiles" class="remote-files hidden"></div>
+      <div class="muted small" style="margin-top:12px">发现使用 UDP 51889；文件传输使用 TCP 51888。<strong>V0.7：可直接把文件拖到设备卡片上发送。</strong> 广播被 VLAN/防火墙阻止时仍可直接访问对方 IP:51888。</div>
+    </div>
+  </div>
+
+  <div id="manageArea" class="grid hidden">
+    <div class="card">
+      <h2>本机设置</h2>
+      <div class="section-title">共享目录</div>
+      <div class="row"><input id="shareDirInput" class="grow"><button id="changeDirBtn">切换目录</button><button id="openDirBtn">打开目录</button></div>
+      <div id="shareDirHint" class="muted small" style="margin-top:7px">目录里已有文件无需上传，会直接进入共享列表。</div>
+      <div class="section-title">设备名称</div>
+      <div class="row"><input id="deviceNameInput" class="grow" maxlength="64"><button id="saveNameBtn">保存名称</button></div>
+      <div class="section-title">启动</div>
+      <label class="switch"><input id="autostart" type="checkbox">登录系统后自动启动 LAN Share</label>
+      <div class="row" style="margin-top:14px"><button id="copyAddrBtn">复制局域网地址</button><button id="updateBtn">检查更新</button><span id="updateStatus" class="muted small"></span></div>
+      <div id="trayHint" class="muted small" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>安全与配对</h2>
+      <label class="switch"><input id="secureMode" type="checkbox">启用安全模式：远程文件访问必须配对</label>
+      <div class="muted small" style="margin:7px 0 14px">启用后，未配对设备不能列出、下载或上传文件；已配对 Agent 之间的分块发送和高速拉取使用 AES-256-GCM。</div>
+      <div>当前 6 位配对码</div><div id="pairCode" class="code">------</div>
+      <div class="row" style="margin:8px 0 14px"><button id="regenPairBtn">重新生成配对码</button></div>
+      <div class="section-title">允许访问本机的设备</div><div id="trustedList" class="muted">暂无</div>
+    </div>
+
+    <div class="card full">
+      <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">临时分享链接</h2><div class="muted small" style="margin-top:5px">选中文件后生成 1 分钟～24 小时有效的随机链接；二维码完全离线生成。安全模式下也只放行这一条临时链接。</div></div><button id="shareLinksBtn">刷新</button></div>
+      <div id="shareLinks" class="muted" style="margin-top:12px">暂无临时分享</div>
+      <div id="sharePreview" class="share-preview hidden"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">共享文件</h2><div class="muted small" style="margin-top:5px">当前共享目录中的现有文件直接共享；浏览器下载支持 HTTP Range/206。</div></div><button id="refreshBtn">刷新</button></div>
+    <div class="scroll"><table><thead><tr><th>文件</th><th>大小</th><th>时间</th><th>操作</th></tr></thead><tbody id="files"></tbody></table></div>
+  </div>
+
+  <div id="historyCard" class="card hidden">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">最近传输</h2><button id="historyBtn">刷新</button></div>
+    <div class="scroll"><table><thead><tr><th>方向</th><th>设备</th><th>文件</th><th>大小</th><th>平均速度</th><th>安全</th><th>时间</th></tr></thead><tbody id="history"></tbody></table></div>
+  </div>
+</div>
+<script src="/assets/app.js"></script>
+<script src="/assets/v07.js"></script>
+</body>
+</html>
