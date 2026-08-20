@@ -36,12 +36,13 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: stable
-          cache: true
+          cache: false
 
       - name: Test and build modern targets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          go version
           grep -q 'const Version = "0.7.0"' internal/app/app.go
           node --check internal/webui/v07.js
           go test ./...
@@ -59,6 +60,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          go version
           sh ./scripts/build-win7.sh
           gh issue comment 1 --body 'release.yml stage 3/5: Win7 builds passed.' || true
 
