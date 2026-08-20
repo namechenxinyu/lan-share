@@ -3,79 +3,159 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LAN Share</title>
+<title>LAN Share · 局域网文件快传</title>
 <link rel="stylesheet" href="/assets/style.css">
+<style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",Arial,sans-serif;color:#172033;background:#f5f7fb;--blue:#2563eb;--blue2:#1d4ed8;--ink:#172033;--muted:#667085;--line:#e6eaf0;--green:#16a34a;--red:#dc2626;--card:#fff;--shadow:0 12px 36px rgba(16,24,40,.07)}*{box-sizing:border-box}html{background:#f5f7fb}body{margin:0;background:radial-gradient(circle at 50% -150px,#e9f1ff 0,#f5f7fb 520px);min-height:100vh}button,input,select{font:inherit}.app-shell{max-width:1320px;margin:0 auto;padding:26px 24px 44px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:24px}.brand-wrap{display:flex;align-items:center;gap:13px}.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(145deg,#2563eb,#60a5fa);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;box-shadow:0 8px 20px rgba(37,99,235,.25)}.brand-line{display:flex;align-items:center;gap:9px}.brand-line h1{font-size:25px;line-height:1.1;margin:0;letter-spacing:-.4px}.version-chip{font-size:11px;padding:3px 7px;border-radius:999px;background:#e8efff;color:#315fba;font-weight:700}.brand-subtitle{font-size:13px;color:var(--muted);margin-top:4px}.top-status{display:flex;align-items:center;gap:10px}.status-item{background:rgba(255,255,255,.86);border:1px solid rgba(226,232,240,.9);border-radius:13px;padding:8px 11px;display:flex;align-items:center;gap:8px;box-shadow:0 2px 10px rgba(15,23,42,.03)}.status-item b{font-size:13px;display:block}.status-item small{font-size:11px;color:var(--muted);display:block;margin-top:1px}.status-item.compact{text-align:center;display:block;min-width:70px}.status-item.compact b{font-size:18px;color:var(--blue)}.status-dot{width:9px;height:9px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.12)}.status-dot.online{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.12)}.badge{border-radius:999px;padding:7px 11px;font-size:12px;background:#eef4ff;color:#315fba;border:1px solid #dce8ff;white-space:nowrap}.badge.secure{background:#ecfdf3;color:#137a40;border-color:#d1fadf}.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:18px}.panel,.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:18px}.panel-head{margin-bottom:17px}.panel-head h2{font-size:20px;margin:4px 0 5px;letter-spacing:-.2px}.panel-head p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#6b8acb}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row-between{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.grow{flex:1;min-width:160px}.hidden{display:none!important}.muted{color:var(--muted)}.small{font-size:12px}button,.btn{border:1px solid #d9e0e9;background:#fff;color:#344054;border-radius:10px;padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s ease}button:hover,.btn:hover{background:#f8fafc;border-color:#cbd5e1}button.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 5px 14px rgba(37,99,235,.2)}button.primary:hover{background:var(--blue2)}button.danger{color:var(--red)}button:disabled{opacity:.55;cursor:not-allowed}input,select{border:1px solid #d7dee8;background:#fff;color:#1f2937;border-radius:10px;padding:10px 11px;outline:0;transition:.15s}input:focus,select:focus{border-color:#8bb1ff;box-shadow:0 0 0 3px rgba(37,99,235,.09)}.target-row{display:flex;align-items:center;gap:12px}.target-row label{font-size:13px;font-weight:700;min-width:48px}.target-row select{flex:1;height:42px}.target-hint{font-size:12px;color:#7b8797;margin:8px 0 12px;padding-left:60px}.drop{border:1.5px dashed #9eb7e5;border-radius:17px;background:linear-gradient(180deg,#f8fbff,#f4f8ff);min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:.18s}.drop:hover,.drop.drag{border-color:#4d82e9;background:#edf4ff;transform:translateY(-1px)}.drop-icon{width:48px;height:48px;border-radius:15px;background:#e4edff;color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:300;margin-bottom:13px}.drop strong{font-size:17px}.drop span{font-size:12px;color:var(--muted);margin-top:7px}.transfer-progress,#progressWrap:not(.hidden){margin-top:16px;padding:14px;border-radius:14px;background:#f8fafc;border:1px solid #eef2f6}.transfer-title{display:flex;justify-content:space-between;gap:10px;font-size:12px}.progress{height:8px;border-radius:999px;background:#e5eaf1;overflow:hidden;margin-top:10px}.bar{height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#2563eb);transition:width .12s}.speed-row{display:flex;align-items:baseline;gap:8px;margin-top:10px}.speed-row strong{font-size:19px}.speed-row span{font-size:11px}canvas{width:100%;height:55px;margin-top:7px}.device-list{display:grid;gap:10px;min-height:188px}.device{border:1px solid #e5eaf1!important;border-radius:14px!important;padding:13px!important;display:flex!important;justify-content:space-between!important;gap:12px!important;align-items:center!important;background:#fff;transition:.15s}.device:hover{border-color:#bfd1f4!important;box-shadow:0 7px 18px rgba(34,69,133,.07)}.device>div:first-child{min-width:0}.device strong{font-size:14px}.device .row{justify-content:flex-end}.device .btn,.device button{font-size:12px;padding:7px 9px}.pill{font-size:10px;padding:3px 6px;border-radius:999px;background:#f1f5f9;margin-left:5px}.pill.lock{background:#eaf8ef;color:#137a40}.drop-target.drag{outline:2px dashed #3b82f6!important;background:#f0f6ff!important}.drop-hint{font-size:10px!important;color:#8b98aa!important;margin-top:4px}.empty-state{min-height:190px;border:1px dashed #d8e0eb;border-radius:16px;background:#fafcff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}.empty-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#eef3fb;color:#7d91b2;font-size:24px;margin-bottom:10px}.empty-state strong{font-size:14px}.empty-state span{font-size:12px;color:var(--muted);margin-top:5px}.icon-btn{width:36px;height:36px;padding:0;font-size:18px;border-radius:11px}.manual-connect{border-top:1px solid #edf0f4;margin-top:15px;padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}.manual-connect>div:first-child strong,.manual-connect>div:first-child span{display:block}.manual-connect>div:first-child strong{font-size:12px}.manual-connect>div:first-child span{font-size:11px;color:var(--muted);margin-top:2px}.manual-connect input{width:145px;padding:8px 9px;font-size:12px}.manual-connect button{font-size:12px;padding:8px 9px}.remote-files{margin-top:12px;max-height:280px;overflow:auto;border-top:1px solid #eef2f7;padding-top:8px}.share-panel{padding-bottom:12px}.share-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.share-summary{text-align:right;padding:8px 10px;border-radius:12px;background:#f6f8fc;min-width:110px}.share-summary strong,.share-summary small{display:block}.share-summary strong{font-size:15px}.share-summary small{font-size:10px;color:var(--muted);margin-top:2px}.share-location{display:flex;align-items:center;gap:12px;background:#f8faff;border:1px solid #e7edf7;padding:12px;border-radius:15px;margin-bottom:13px}.folder-icon{width:38px;height:38px;border-radius:11px;background:#e8f0ff;color:#3f70cf;display:flex;align-items:center;justify-content:center;font-size:18px}.share-location label{font-size:11px;font-weight:700;color:#667085;display:block;margin-bottom:5px}.folder-input{width:100%;padding:7px 0!important;border:0!important;background:transparent!important;box-shadow:none!important;font-weight:600}.folder-actions{display:flex;gap:7px}.folder-actions button{font-size:12px;white-space:nowrap}.file-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.search-box{display:flex;align-items:center;gap:7px;max-width:340px;flex:1;border:1px solid #e1e6ed;border-radius:10px;padding:0 10px;background:#fff}.search-box span{color:#98a2b3}.search-box input{width:100%;border:0;padding:8px 2px;box-shadow:none}.scroll{overflow:auto}.file-table,.history-table{width:100%;border-collapse:collapse}.file-table th,.file-table td,.history-table th,.history-table td{text-align:left;padding:11px 10px;border-bottom:1px solid #edf0f4;white-space:nowrap;font-size:12px}.file-table th,.history-table th{font-size:11px;color:#7b8797;font-weight:700}.file-table td:first-child{font-weight:600;max-width:450px;overflow:hidden;text-overflow:ellipsis}.file-table tr:last-child td,.history-table tr:last-child td{border-bottom:0}.share-file-v07{margin-right:5px;color:#315fba;border-color:#cfe0ff;background:#f7faff}.more-section{margin-top:3px}.more-toggle{width:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 17px;display:flex;justify-content:space-between;text-align:left;box-shadow:0 4px 16px rgba(16,24,40,.03)}.more-toggle span b,.more-toggle span small{display:block}.more-toggle span b{font-size:14px}.more-toggle span small{font-size:11px;color:var(--muted);margin-top:3px}.more-toggle i{font-style:normal;font-size:20px;color:#7b8797;transition:.15s}.more-toggle.open i{transform:rotate(180deg)}.more-body{padding-top:15px}.grid,.settings-grid-v08{display:grid;grid-template-columns:1fr 1fr;gap:18px}.settings-grid-v08 .panel,.grid .panel{margin-bottom:0}.full{grid-column:1/-1}.setting-block{margin:15px 0}.setting-block>label{font-size:12px;font-weight:700;display:block;margin-bottom:7px}.setting-block small{font-size:11px;color:var(--muted);display:block;margin-top:6px}.switch{display:flex!important;align-items:center!important;gap:9px!important}.switch input{width:17px;height:17px}.setting-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.secure-toggle{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #e7ebf0;padding:12px;border-radius:13px}.secure-toggle strong,.secure-toggle small{display:block}.secure-toggle small{color:var(--muted);font-size:11px;margin-top:3px;max-width:340px}.secure-toggle input{width:19px;height:19px}.pair-code-box{display:flex;align-items:center;gap:12px;margin:14px 0;padding:12px;border-radius:13px;background:#f8fafc}.pair-code-box>span{font-size:11px;color:var(--muted)}.code{font:800 23px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:4px;flex:1}.pair-code-box button{font-size:11px}.network-details{border:1px solid #e7ebf0;background:#fff;border-radius:13px;padding:10px 13px;margin-top:12px}.network-details summary{cursor:pointer;font-size:12px;font-weight:700}.network-details p,.technical-line{font-size:11px;color:var(--muted);line-height:1.6}.pairbox{display:flex;align-items:center;gap:12px;background:#fff8ed;border:1px solid #fed7aa;border-radius:15px;padding:13px;margin-bottom:18px}.pair-icon{font-size:24px}.pairbox input{width:150px}.share-preview{margin-top:14px;padding:14px;border:1px solid #dbeafe;background:#f4f8ff;border-radius:14px}.share-preview img{width:220px;height:220px;image-rendering:pixelated;background:#fff;padding:8px;border-radius:10px}.share-url{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;word-break:break-all;padding:9px;background:#fff;border-radius:8px;margin:8px 0}.share-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eef2f7}.share-row:last-child{border-bottom:0}footer{display:flex;justify-content:center;padding:24px 0 5px;font-size:11px;color:#98a2b3}.toast{position:fixed;right:24px;bottom:24px;z-index:99;background:#182230;color:#fff;border-radius:12px;padding:11px 14px;font-size:12px;box-shadow:0 10px 35px rgba(0,0,0,.2);max-width:360px}.toast.success{background:#166534}.toast.error{background:#991b1b}@media(max-width:980px){.hero-grid,.grid,.settings-grid-v08{grid-template-columns:1fr}.topbar{align-items:flex-start}.top-status{flex-wrap:wrap;justify-content:flex-end}.share-location{align-items:flex-start}.folder-actions{flex-direction:column}.manual-connect{align-items:flex-start;flex-direction:column}.full{grid-column:auto}}@media(max-width:680px){.app-shell{padding:16px 12px 30px}.topbar{display:block}.top-status{margin-top:14px;justify-content:flex-start}.status-item.compact{display:none}.panel{padding:16px;border-radius:17px}.target-row{display:block}.target-row label{display:block;margin-bottom:6px}.target-hint{padding-left:0}.share-head{display:block}.share-summary{text-align:left;margin-top:10px;width:max-content}.share-location{display:block}.folder-icon{margin-bottom:8px}.folder-actions{margin-top:8px;flex-direction:row}.file-table th:nth-child(3),.file-table td:nth-child(3){display:none}.pairbox{align-items:stretch;flex-direction:column}.pairbox input{width:100%}.brand-mark{width:42px;height:42px}}
+
+</style>
 </head>
 <body>
-<div class="wrap">
-  <div class="header">
-    <div><h1>LAN Share</h1><div id="selfInfo" class="muted">正在读取本机信息...</div></div>
-    <div><span id="modeBadge" class="badge">LAN only · direct transfer</span></div>
-  </div>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-mark" aria-hidden="true">LS</div>
+      <div>
+        <div class="brand-line"><h1>LAN Share</h1><span id="versionText" class="version-chip">v0.8.0</span></div>
+        <div class="brand-subtitle">局域网文件快传 · 打开就能发</div>
+      </div>
+    </div>
+    <div class="top-status">
+      <div class="status-item"><span class="status-dot online"></span><div><b id="friendlyName">本机</b><small id="primaryAddress">正在连接局域网...</small></div></div>
+      <div class="status-item compact"><b id="deviceCount">0</b><small>台设备在线</small></div>
+      <span id="modeBadge" class="badge">局域网直传</span>
+    </div>
+  </header>
 
   <div id="browserPairBox" class="pairbox hidden">
-    <strong>此设备已开启安全模式</strong>
-    <div class="muted small" style="margin:6px 0 10px">请输入对方 LAN Share 本机页面上显示的 6 位配对码。验证后此浏览器会获得 30 天访问凭据。</div>
-    <div class="row"><input id="browserPairCode" maxlength="6" placeholder="6 位配对码"><button id="browserPairBtn" class="primary">配对并访问</button></div>
+    <div class="pair-icon">🔐</div>
+    <div class="grow"><strong>需要先配对才能访问这台设备</strong><div class="muted small">在对方 LAN Share 本机页面查看 6 位配对码。验证一次后，本浏览器 30 天内无需重复输入。</div></div>
+    <input id="browserPairCode" maxlength="6" inputmode="numeric" placeholder="6 位配对码">
+    <button id="browserPairBtn" class="primary">配对并访问</button>
   </div>
 
-  <div class="grid">
-    <div class="card">
-      <h2>发送文件</h2>
-      <div class="row" style="margin-bottom:12px"><label for="target">目标设备</label><select id="target" class="grow"><option value="local">当前设备（保存到共享目录）</option></select></div>
-      <div class="drop" id="drop"><strong>拖拽大文件到这里</strong><div class="muted" style="margin-top:8px">16 MiB 分块、失败自动重试、支持断点续传。已配对设备的 Agent→Agent 分块使用 AES-256-GCM。</div><input id="file" type="file" multiple style="display:none"></div>
-      <div id="progressWrap" class="hidden"><div class="progress"><div class="bar" id="bar"></div></div><div class="speed"><strong id="speedText">0 MB/s</strong><span id="etaText" class="muted"></span></div><canvas id="speedChart" width="700" height="90"></canvas><div class="status" id="uploadStatus"></div></div>
-    </div>
+  <main>
+    <section class="hero-grid">
+      <div class="panel send-panel">
+        <div class="panel-head">
+          <div><span class="eyebrow">快速发送</span><h2>把文件发到另一台电脑</h2><p>选择目标设备，然后拖入文件。大文件会自动分块，网络中断后可继续。</p></div>
+        </div>
+        <div class="target-row">
+          <label for="target">发送到</label>
+          <select id="target" class="grow"><option value="local">本机共享目录</option></select>
+        </div>
+        <div id="targetHint" class="target-hint">选择设备后，拖入文件即可发送</div>
+        <div class="drop primary-drop" id="drop">
+          <div class="drop-icon">⇧</div>
+          <strong>拖入文件，或点击选择</strong>
+          <span>支持多个文件 · 支持超大文件 · 断点续传</span>
+          <input id="file" type="file" multiple style="display:none">
+        </div>
+        <div id="progressWrap" class="transfer-progress hidden">
+          <div class="transfer-title"><strong id="uploadStatus">准备传输...</strong><span id="etaText" class="muted"></span></div>
+          <div class="progress"><div class="bar" id="bar"></div></div>
+          <div class="speed-row"><strong id="speedText">0 MB/s</strong><span class="muted">实时速度</span></div>
+          <canvas id="speedChart" width="700" height="72"></canvas>
+        </div>
+      </div>
 
-    <div class="card">
-      <h2>局域网设备</h2>
-      <div id="devices"><div class="muted">正在发现设备...</div></div>
-      <div id="remoteFiles" class="remote-files hidden"></div>
-      <div class="muted small" style="margin-top:12px">发现使用 UDP 51889；文件传输使用 TCP 51888。<strong>V0.7：可直接把文件拖到设备卡片上发送。</strong> 广播被 VLAN/防火墙阻止时仍可直接访问对方 IP:51888。</div>
-    </div>
-  </div>
+      <div class="panel devices-panel">
+        <div class="panel-head row-between">
+          <div><span class="eyebrow">附近设备</span><h2>同一局域网的电脑</h2><p>直接把文件拖到设备卡片，也可以先浏览对方共享的文件。</p></div>
+          <button id="scanVisualBtn" class="icon-btn" title="重新扫描">↻</button>
+        </div>
+        <div id="devices" class="device-list"><div class="empty-state"><div class="empty-icon">⌁</div><strong>正在查找附近设备...</strong><span>请确保其他电脑已打开 LAN Share</span></div></div>
+        <div id="remoteFiles" class="remote-files hidden"></div>
+        <div class="manual-connect">
+          <div><strong>没有发现？</strong><span>可直接输入对方局域网 IP</span></div>
+          <div class="row"><input id="manualIp" placeholder="例如 192.168.1.20"><button id="manualOpenBtn">打开设备</button></div>
+        </div>
+      </div>
+    </section>
 
-  <div id="manageArea" class="grid hidden">
-    <div class="card">
-      <h2>本机设置</h2>
-      <div class="section-title">共享目录</div>
-      <div class="row"><input id="shareDirInput" class="grow"><button id="changeDirBtn">切换目录</button><button id="openDirBtn">打开目录</button></div>
-      <div id="shareDirHint" class="muted small" style="margin-top:7px">目录里已有文件无需上传，会直接进入共享列表。</div>
-      <div class="section-title">设备名称</div>
-      <div class="row"><input id="deviceNameInput" class="grow" maxlength="64"><button id="saveNameBtn">保存名称</button></div>
-      <div class="section-title">启动</div>
-      <label class="switch"><input id="autostart" type="checkbox">登录系统后自动启动 LAN Share</label>
-      <div class="row" style="margin-top:14px"><button id="copyAddrBtn">复制局域网地址</button><button id="updateBtn">检查更新</button><span id="updateStatus" class="muted small"></span></div>
-      <div id="trayHint" class="muted small" style="margin-top:10px"></div>
-    </div>
+    <section class="panel share-panel">
+      <div class="panel-head share-head">
+        <div><span class="eyebrow">我的共享</span><h2>共享文件</h2><p>共享文件夹里已有的文件会自动出现，不需要重新上传。</p></div>
+        <div class="share-summary"><strong id="shareStats">正在读取...</strong><small>当前共享</small></div>
+      </div>
+      <div id="localShareControls" class="share-location hidden">
+        <div class="folder-icon">▰</div>
+        <div class="grow"><label for="shareDirInput">共享文件夹</label><input id="shareDirInput" class="folder-input"><div id="shareDirHint" class="muted small">目录中的现有文件会直接共享。</div></div>
+        <div class="folder-actions"><button id="openDirBtn">打开文件夹</button><button id="changeDirBtn">更换文件夹</button></div>
+      </div>
+      <div class="file-toolbar">
+        <div class="search-box"><span>⌕</span><input id="fileSearch" placeholder="搜索共享文件"></div>
+        <button id="refreshBtn">刷新</button>
+      </div>
+      <div class="file-table-wrap scroll"><table class="file-table"><thead><tr><th>文件</th><th>大小</th><th>修改时间</th><th>操作</th></tr></thead><tbody id="files"><tr><td colspan="4" class="muted">正在读取共享文件...</td></tr></tbody></table></div>
+    </section>
 
-    <div class="card">
-      <h2>安全与配对</h2>
-      <label class="switch"><input id="secureMode" type="checkbox">启用安全模式：远程文件访问必须配对</label>
-      <div class="muted small" style="margin:7px 0 14px">启用后，未配对设备不能列出、下载或上传文件；已配对 Agent 之间的分块发送和高速拉取使用 AES-256-GCM。</div>
-      <div>当前 6 位配对码</div><div id="pairCode" class="code">------</div>
-      <div class="row" style="margin:8px 0 14px"><button id="regenPairBtn">重新生成配对码</button></div>
-      <div class="section-title">允许访问本机的设备</div><div id="trustedList" class="muted">暂无</div>
-    </div>
+    <section id="historyCard" class="panel hidden">
+      <div class="panel-head row-between"><div><span class="eyebrow">最近活动</span><h2>传输记录</h2><p>最近发送、接收和高速拉取的文件。</p></div><button id="historyBtn">刷新</button></div>
+      <div class="scroll"><table class="history-table"><thead><tr><th>方向</th><th>设备</th><th>文件</th><th>大小</th><th>速度</th><th>状态</th><th>时间</th></tr></thead><tbody id="history"></tbody></table></div>
+    </section>
 
-    <div class="card full">
-      <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">临时分享链接</h2><div class="muted small" style="margin-top:5px">选中文件后生成 1 分钟～24 小时有效的随机链接；二维码完全离线生成。安全模式下也只放行这一条临时链接。</div></div><button id="shareLinksBtn">刷新</button></div>
-      <div id="shareLinks" class="muted" style="margin-top:12px">暂无临时分享</div>
-      <div id="sharePreview" class="share-preview hidden"></div>
-    </div>
-  </div>
+    <section class="more-section">
+      <button id="moreToggle" class="more-toggle"><span><b>更多设置</b><small>设备名称、安全配对、临时分享、开机启动和网络信息</small></span><i>⌄</i></button>
+      <div id="moreBody" class="more-body hidden">
+        <div id="manageArea" class="settings-grid-v08 hidden">
+          <div class="panel settings-card">
+            <div class="panel-head"><span class="eyebrow">设备设置</span><h2>本机设置</h2></div>
+            <div class="setting-block"><label for="deviceNameInput">设备名称</label><div class="row"><input id="deviceNameInput" class="grow" maxlength="64"><button id="saveNameBtn">保存</button></div><small>其他电脑会用这个名称识别你。</small></div>
+            <div class="setting-block"><label class="switch"><input id="autostart" type="checkbox"><span>登录系统后自动启动 LAN Share</span></label></div>
+            <div class="setting-actions"><button id="copyAddrBtn">复制局域网地址</button><button id="updateBtn">检查更新</button><span id="updateStatus" class="muted small"></span></div>
+            <div id="trayHint" class="muted small"></div>
+          </div>
 
-  <div class="card">
-    <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">共享文件</h2><div class="muted small" style="margin-top:5px">当前共享目录中的现有文件直接共享；浏览器下载支持 HTTP Range/206。</div></div><button id="refreshBtn">刷新</button></div>
-    <div class="scroll"><table><thead><tr><th>文件</th><th>大小</th><th>时间</th><th>操作</th></tr></thead><tbody id="files"></tbody></table></div>
-  </div>
+          <div class="panel settings-card">
+            <div class="panel-head"><span class="eyebrow">访问保护</span><h2>安全与配对</h2></div>
+            <label class="secure-toggle"><div><strong>安全模式</strong><small>开启后，仅已配对设备可以浏览、下载或发送文件。</small></div><input id="secureMode" type="checkbox"></label>
+            <div class="pair-code-box"><span>当前配对码</span><div id="pairCode" class="code">------</div><button id="regenPairBtn">换一个配对码</button></div>
+            <div class="setting-block"><label>已允许的设备</label><div id="trustedList" class="muted">暂无已授权设备</div></div>
+          </div>
 
-  <div id="historyCard" class="card hidden">
-    <div class="row" style="justify-content:space-between"><h2 style="margin:0">最近传输</h2><button id="historyBtn">刷新</button></div>
-    <div class="scroll"><table><thead><tr><th>方向</th><th>设备</th><th>文件</th><th>大小</th><th>平均速度</th><th>安全</th><th>时间</th></tr></thead><tbody id="history"></tbody></table></div>
-  </div>
+          <div class="panel settings-card full">
+            <div class="panel-head row-between"><div><span class="eyebrow">手机/浏览器下载</span><h2>临时分享链接</h2><p>给单个文件生成短时链接和离线二维码，适合手机扫码下载。</p></div><button id="shareLinksBtn">刷新</button></div>
+            <div id="shareLinks" class="muted">暂无临时分享</div>
+            <div id="sharePreview" class="share-preview hidden"></div>
+          </div>
+        </div>
+
+        <details class="network-details"><summary>网络与版本详情</summary><div id="selfInfo" class="technical-line">正在读取本机信息...</div><p>默认使用 TCP 51888 传输文件、UDP 51889 发现设备。如果公司网络/VLAN 阻止广播，可直接访问对方 IP:51888。</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>LAN Share · 数据只在局域网设备之间直接传输</span></footer>
 </div>
+<div id="toast" class="toast hidden"></div>
 <script src="/assets/app.js"></script>
 <script src="/assets/v07.js"></script>
+<script>
+(function(){
+function q(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmt(n){var u=['B','KB','MB','GB','TB'],i=0;if(typeof n!=='number'||isNaN(n))return '0 B';while(n>=1024&&i<u.length-1){n/=1024;i++}return n.toFixed(i?1:0)+' '+u[i]}
+function ajax(url,ok,bad){var x=new XMLHttpRequest();x.open('GET',url,true);x.onreadystatechange=function(){if(x.readyState===4){if(x.status>=200&&x.status<300){ok&&ok(x)}else{bad&&bad(x)}}};x.onerror=function(){bad&&bad(x)};x.send()}
+function toast(text,type){var t=q('toast');if(!t)return;t.className='toast '+(type||'');t.innerHTML=esc(text);clearTimeout(toast.timer);toast.timer=setTimeout(function(){t.className='toast hidden'},2600)}
+function friendlyOS(os){if(os==='windows')return 'Windows';if(os==='darwin')return 'macOS';if(os==='linux')return 'Linux / Deepin';return os||'设备'}
+function refreshInfo(){ajax('/api/info?ui08='+Date.now(),function(x){var v=JSON.parse(x.responseText),ips=v.ips||[],ip=ips.length?ips[0]:'127.0.0.1';if(q('friendlyName'))q('friendlyName').innerHTML=esc(v.name||'本机');if(q('primaryAddress'))q('primaryAddress').innerHTML=esc(ip+':'+v.port+' · '+friendlyOS(v.os));if(q('versionText'))q('versionText').innerHTML='v'+esc(v.version||'0.8.0');if(q('modeBadge')){q('modeBadge').className='badge '+(v.secure_mode?'secure':'');q('modeBadge').innerHTML=v.secure_mode?'已开启安全模式':'局域网直传'}if(q('localShareControls'))q('localShareControls').className=v.can_manage?'share-location':'share-location hidden';},function(){if(q('primaryAddress'))q('primaryAddress').innerHTML='LAN Share 服务连接失败'})}
+function refreshPeerCount(){ajax('/api/devices?ui08='+Date.now(),function(x){var list=JSON.parse(x.responseText);if(q('deviceCount'))q('deviceCount').innerHTML=String(list.length);enhanceDevices(list)},function(){})}
+function enhanceDevices(list){var box=q('devices');if(!box)return;var cards=box.getElementsByClassName('device'),i;if(!cards.length&&(!list||!list.length)){if(!box.querySelector('.empty-state'))box.innerHTML='<div class="empty-state"><div class="empty-icon">⌁</div><strong>还没有发现其他设备</strong><span>请在另一台电脑打开 LAN Share，并确认连接同一局域网</span></div>';return}for(i=0;i<cards.length;i++){if(cards[i].getAttribute('data-polished-v08')==='1')continue;cards[i].setAttribute('data-polished-v08','1');cards[i].title='可将文件直接拖到这里发送'}}
+function refreshShareStats(){ajax('/api/files?ui08='+Date.now(),function(x){var list=JSON.parse(x.responseText),total=0;for(var i=0;i<list.length;i++)total+=list[i].size||0;if(q('shareStats'))q('shareStats').innerHTML=list.length+' 个文件 · '+fmt(total)},function(){if(q('shareStats'))q('shareStats').innerHTML='需要配对后查看'})}
+function normalizeTarget(){var s=q('target');if(!s)return;for(var i=0;i<s.options.length;i++){if(s.options[i].value==='local')s.options[i].text='本机共享目录'}updateTargetHint()}
+function updateTargetHint(){var s=q('target'),h=q('targetHint');if(!s||!h)return;var text=s.options[s.selectedIndex]?s.options[s.selectedIndex].text:'设备';h.innerHTML=s.value==='local'?'文件会保存到当前共享文件夹':'将发送到 '+esc(text)+'；也可以直接把文件拖到右侧设备卡片'}
+function filterFiles(){var input=q('fileSearch'),body=q('files');if(!input||!body)return;var key=(input.value||'').toLowerCase(),rows=body.getElementsByTagName('tr');for(var i=0;i<rows.length;i++){var first=rows[i].getElementsByTagName('td')[0],name=first?(first.textContent||first.innerText||'').toLowerCase():'';rows[i].style.display=!key||name.indexOf(key)>=0?'':'none'}}
+function bindManual(){var btn=q('manualOpenBtn'),input=q('manualIp');if(!btn||!input)return;btn.onclick=function(){var v=(input.value||'').replace(/^\s+|\s+$/g,'');if(!v){toast('请输入对方局域网 IP','error');return}v=v.replace(/^https?:\/\//i,'').replace(/\/$/,'');if(v.indexOf(':')<0)v+=':51888';window.open('http://'+v+'/', '_blank')};input.onkeydown=function(e){e=e||window.event;if((e.keyCode||e.which)===13)btn.click()}}
+function bindMore(){var b=q('moreToggle'),body=q('moreBody');if(!b||!body)return;b.onclick=function(){var open=body.className.indexOf('hidden')>=0;body.className=open?'more-body':'more-body hidden';b.className=open?'more-toggle open':'more-toggle'}}
+function bindSearch(){if(q('fileSearch'))q('fileSearch').oninput=filterFiles}
+function bindTarget(){if(q('target'))q('target').onchange=updateTargetHint}
+function bindScan(){if(q('scanVisualBtn'))q('scanVisualBtn').onclick=function(){toast('正在重新扫描局域网设备...');refreshPeerCount();setTimeout(refreshPeerCount,700)}}
+function observe(){if(!window.MutationObserver)return;var d=q('devices'),f=q('files'),t=q('target');if(d)new MutationObserver(function(){refreshPeerCount()}).observe(d,{childList:true,subtree:false});if(f)new MutationObserver(function(){refreshShareStats();filterFiles()}).observe(f,{childList:true,subtree:true});if(t)new MutationObserver(normalizeTarget).observe(t,{childList:true})}
+function init(){bindManual();bindMore();bindSearch();bindTarget();bindScan();refreshInfo();refreshPeerCount();refreshShareStats();normalizeTarget();observe();setInterval(refreshInfo,7000);setInterval(refreshShareStats,6500)}
+init();
+})();
+
+</script>
 </body>
 </html>
