@@ -1,0 +1,13 @@
+# Build outputs
+dist/
+*.exe
+
+# Runtime state
+.lan-share*
+LANShare/
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
