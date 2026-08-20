@@ -1,10 +1,15 @@
 # Build outputs
 dist/
 *.exe
+*.app/
 
 # Runtime state
 .lan-share*
 LANShare/
+
+# Coverage / profiling
+coverage.out
+*.prof
 
 # OS / editor files
 .DS_Store
