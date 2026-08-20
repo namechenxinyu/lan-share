@@ -19,20 +19,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify source version
+      - name: Setup modern Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Verify source
         run: |
           grep -q 'const Version = "0.7.0"' internal/app/app.go
+          node --check internal/webui/v07.js
           go test ./...
+          go vet ./...
 
-      - name: Create v0.7.0 tag
+      - name: Build modern targets
+        run: ./scripts/build-modern.sh
+
+      - name: Setup Go 1.20.14 for Windows 7
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20.14'
+          cache: false
+
+      - name: Build Windows 7 targets
+        run: ./scripts/build-win7.sh
+
+      - name: Package macOS assets and checksums
+        run: |
+          cd dist
+          zip -9 lan-share-macos-intel.zip lan-share-macos-intel
+          zip -9 lan-share-macos-apple-silicon.zip lan-share-macos-apple-silicon
+          rm -f lan-share-macos-intel lan-share-macos-apple-silicon
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if git rev-parse v0.7.0 >/dev/null 2>&1; then
-            echo 'tag v0.7.0 already exists'
-          else
+          if ! git rev-parse v0.7.0 >/dev/null 2>&1; then
             git tag -a v0.7.0 -m 'LAN Share v0.7.0'
             git push origin v0.7.0
           fi
+          if gh release view v0.7.0 >/dev/null 2>&1; then
+            gh release upload v0.7.0 dist/* --clobber
+          else
+            gh release create v0.7.0 dist/* --generate-notes --title 'LAN Share v0.7.0'
+          fi
 
-# retrigger after v0.7 source landed on main
+# one-shot release publisher for v0.7.0
