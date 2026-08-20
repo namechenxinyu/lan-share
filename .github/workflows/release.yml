@@ -2,12 +2,9 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
-    branches:
-      - main
-    paths:
-      - '.github/workflows/release.yml'
+    tags: ['v*']
+    branches: [main]
+    paths: ['.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
@@ -26,39 +23,37 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=v0.7.0
-          if ! gh release view "$VERSION" >/dev/null 2>&1; then
-            gh release create "$VERSION" --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop drag-and-drop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
-          fi
-          gh issue comment 1 --body 'release.yml stage 1/7: release shell ready.' || true
+          gh release view v0.7.0 >/dev/null 2>&1 || gh release create v0.7.0 --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
+          gh issue comment 1 --body 'release diag A: shell ready.' || true
 
-      - name: Setup modern Go 1.23.2
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.23.2'
           cache: false
 
-      - name: Confirm modern Go
+      - name: Diagnose and build modern
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          go version
-          gh issue comment 1 --body "release.yml stage 2/7: modern Go ready: $(go version)." || true
+          report_fail() {
+            local name="$1" file="$2"
+            { echo "release diagnostic failed at: $name"; echo '```'; tail -n 80 "$file"; echo '```'; } > /tmp/issue.txt
+            gh issue comment 1 --body-file /tmp/issue.txt || true
+            exit 1
+          }
+          echo "$(go version)" > /tmp/go.log
+          grep -q 'const Version = "0.7.0"' internal/app/app.go > /tmp/version.log 2>&1 || report_fail version /tmp/version.log
+          node --check internal/webui/v07.js > /tmp/node.log 2>&1 || report_fail node-check /tmp/node.log
+          gh issue comment 1 --body 'release diag B: version and JavaScript check passed.' || true
+          go test ./... > /tmp/test.log 2>&1 || report_fail go-test /tmp/test.log
+          gh issue comment 1 --body 'release diag C: go test passed.' || true
+          go vet ./... > /tmp/vet.log 2>&1 || report_fail go-vet /tmp/vet.log
+          gh issue comment 1 --body 'release diag D: go vet passed.' || true
+          sh ./scripts/build-modern.sh > /tmp/build.log 2>&1 || report_fail modern-build /tmp/build.log
+          gh issue comment 1 --body 'release diag E: modern builds passed.' || true
 
-      - name: Test and build modern targets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          grep -q 'const Version = "0.7.0"' internal/app/app.go
-          node --check internal/webui/v07.js
-          go test ./...
-          go vet ./...
-          gh issue comment 1 --body 'release.yml stage 3/7: tests and vet passed.' || true
-          sh ./scripts/build-modern.sh
-          gh issue comment 1 --body 'release.yml stage 4/7: modern platform builds passed.' || true
-
-      - name: Setup Go 1.20.14 for Windows 7
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: '1.20.14'
           cache: false
@@ -66,14 +61,19 @@ jobs:
       - name: Build Windows 7 targets
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          go version
-          sh ./scripts/build-win7.sh
-          gh issue comment 1 --body "release.yml stage 5/7: Win7 builds passed with $(go version)." || true
+          if ! sh ./scripts/build-win7.sh > /tmp/win7.log 2>&1; then
+            { echo 'release diagnostic failed at: win7-build'; echo '```'; tail -n 80 /tmp/win7.log; echo '```'; } > /tmp/issue.txt
+            gh issue comment 1 --body-file /tmp/issue.txt || true
+            exit 1
+          fi
+          gh issue comment 1 --body 'release diag F: Win7 builds passed.' || true
 
-      - name: Package and checksum
+      - name: Package and upload
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           cd dist
           zip -9 lan-share-macos-intel.zip lan-share-macos-intel
@@ -81,11 +81,5 @@ jobs:
           rm -f lan-share-macos-intel lan-share-macos-apple-silicon
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh issue comment 1 --body 'release.yml stage 6/7: packages and SHA256 checksums ready.' || true
-
-      - name: Upload assets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
           gh release upload v0.7.0 dist/* --clobber
-          gh issue close 1 --comment 'release.yml stage 7/7: v0.7.0 assets uploaded successfully.' || true
+          gh issue close 1 --comment 'v0.7.0 release complete: all platform assets uploaded.' || true
