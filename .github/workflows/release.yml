@@ -2,14 +2,11 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
-    branches: [main]
-    paths: ['.github/workflows/release.yml']
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
   build:
@@ -19,69 +16,45 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare release shell and align tag
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git tag -fa v0.7.0 -m 'LAN Share v0.7.0' HEAD
-          git push --force origin refs/tags/v0.7.0
-          gh release view v0.7.0 >/dev/null 2>&1 || gh release create v0.7.0 --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
-          gh issue comment 1 --body 'release retry: tag aligned to fixed main; release shell ready.' || true
-
-      - uses: actions/setup-go@v5
+      - name: Setup modern Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23.2'
           cache: false
 
-      - name: Diagnose and build modern
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
+      - name: Test and vet
         run: |
-          report_fail() {
-            local name="$1" file="$2"
-            { echo "release diagnostic failed at: $name"; echo '```'; tail -n 80 "$file"; echo '```'; } > /tmp/issue.txt
-            gh issue comment 1 --body-file /tmp/issue.txt || true
-            exit 1
-          }
-          grep -q 'const Version = "0.7.0"' internal/app/app.go > /tmp/version.log 2>&1 || report_fail version /tmp/version.log
-          node --check internal/webui/v07.js > /tmp/node.log 2>&1 || report_fail node-check /tmp/node.log
-          go test ./... > /tmp/test.log 2>&1 || report_fail go-test /tmp/test.log
-          gh issue comment 1 --body 'release retry: go test passed.' || true
-          go vet ./... > /tmp/vet.log 2>&1 || report_fail go-vet /tmp/vet.log
-          gh issue comment 1 --body 'release retry: go vet passed.' || true
-          sh ./scripts/build-modern.sh > /tmp/build.log 2>&1 || report_fail modern-build /tmp/build.log
-          gh issue comment 1 --body 'release retry: modern platform builds passed.' || true
+          go test ./...
+          go vet ./...
+          if [ -f internal/webui/v07.js ]; then node --check internal/webui/v07.js; fi
 
-      - uses: actions/setup-go@v5
+      - name: Build modern targets
+        run: sh ./scripts/build-modern.sh
+
+      - name: Setup Go 1.20.14 for Windows 7
+        uses: actions/setup-go@v5
         with:
           go-version: '1.20.14'
           cache: false
 
       - name: Build Windows 7 targets
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          if ! sh ./scripts/build-win7.sh > /tmp/win7.log 2>&1; then
-            { echo 'release diagnostic failed at: win7-build'; echo '```'; tail -n 80 /tmp/win7.log; echo '```'; } > /tmp/issue.txt
-            gh issue comment 1 --body-file /tmp/issue.txt || true
-            exit 1
-          fi
-          gh issue comment 1 --body 'release retry: Win7 builds passed.' || true
+        run: sh ./scripts/build-win7.sh
 
-      - name: Package and upload
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
+      - name: Package macOS assets and checksums
         run: |
           cd dist
           zip -9 lan-share-macos-intel.zip lan-share-macos-intel
           zip -9 lan-share-macos-apple-silicon.zip lan-share-macos-apple-silicon
           rm -f lan-share-macos-intel lan-share-macos-apple-silicon
           sha256sum * > SHA256SUMS.txt
-          cd ..
-          gh release upload v0.7.0 dist/* --clobber
-          gh issue close 1 --comment 'v0.7.0 release complete: all platform assets uploaded.' || true
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --verify-tag --generate-notes --title "LAN Share ${TAG}"
+          fi
