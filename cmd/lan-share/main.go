@@ -24,6 +24,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer a.Close()
+	if cfg.Tray {
+		stopTray, trayErr := platform.StartTray(a.LocalURL())
+		if trayErr != nil {
+			log.Printf("tray disabled: %v", trayErr)
+		} else {
+			defer stopTray()
+		}
+	}
 	if err := a.StartDiscovery(); err != nil {
 		log.Printf("UDP discovery disabled: %v", err)
 	}

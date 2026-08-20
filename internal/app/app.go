@@ -26,7 +26,7 @@ import (
 	"github.com/namechenxinyu/lan-share/internal/webui"
 )
 
-const Version = "0.6.0"
+const Version = "0.7.0"
 
 const maxChunkSize = 64 << 20
 
@@ -43,6 +43,9 @@ type App struct {
 	shareDir   string
 	name       string
 	secureMode bool
+
+	shareMu    sync.Mutex
+	shareLinks map[string]ShareLink
 
 	finalizeMu sync.Mutex
 	bufPool    sync.Pool
@@ -64,7 +67,7 @@ func New(cfg config.Runtime) (*App, error) {
 	}
 	a := &App{
 		cfg: cfg, shareDir: cfg.ShareDir, name: cfg.Name, secureMode: cfg.SecureMode,
-		security: sec, history: newHistory(100), sessions: make(map[string]*uploadSession), attempts: make(map[string]*pairAttempt),
+		security: sec, history: newHistory(100), sessions: make(map[string]*uploadSession), attempts: make(map[string]*pairAttempt), shareLinks: make(map[string]ShareLink),
 	}
 	a.discovery = discovery.New(sec.DeviceID(), cfg.Name, cfg.Port, cfg.DiscoveryPort)
 	a.discovery.SetSecure(cfg.SecureMode)
@@ -121,6 +124,9 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("/api/security", a.handleSecurity)
 	mux.HandleFunc("/api/trust/revoke", a.handleRevokeTrust)
 	mux.HandleFunc("/api/update-check", a.handleUpdateCheck)
+	mux.HandleFunc("/api/share-links", a.handleShareLinks)
+	mux.HandleFunc("/api/share-links/qr", a.handleShareLinkQR)
+	mux.HandleFunc("/s/", a.handlePublicShare)
 	return a.withCommonHeaders(mux)
 }
 

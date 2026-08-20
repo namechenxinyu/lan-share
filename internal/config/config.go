@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -23,6 +24,7 @@ type Runtime struct {
 	AutoOpen      bool
 	SyncWrites    bool
 	SecureMode    bool
+	Tray          bool
 	ConfigPath    string
 	SecurityPath  string
 }
@@ -57,6 +59,7 @@ func Parse(args []string) (Runtime, error) {
 	fs.BoolVar(&cfg.AutoOpen, "open", true, "open browser automatically")
 	fs.BoolVar(&cfg.SyncWrites, "sync", false, "fsync uploads before reporting completion (slower)")
 	fs.BoolVar(&cfg.SecureMode, "secure", stored.SecureMode, "require pairing for remote file access and encrypt paired agent transfers")
+	fs.BoolVar(&cfg.Tray, "tray", runtime.GOOS == "windows", "show native Windows tray icon")
 	if err := fs.Parse(args); err != nil {
 		return Runtime{}, err
 	}

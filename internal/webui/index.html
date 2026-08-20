@@ -31,7 +31,7 @@
       <h2>局域网设备</h2>
       <div id="devices"><div class="muted">正在发现设备...</div></div>
       <div id="remoteFiles" class="remote-files hidden"></div>
-      <div class="muted small" style="margin-top:12px">发现使用 UDP 51889；文件传输使用 TCP 51888。广播被 VLAN/防火墙阻止时仍可直接访问对方 IP:51888。</div>
+      <div class="muted small" style="margin-top:12px">发现使用 UDP 51889；文件传输使用 TCP 51888。<strong>V0.7：可直接把文件拖到设备卡片上发送。</strong> 广播被 VLAN/防火墙阻止时仍可直接访问对方 IP:51888。</div>
     </div>
   </div>
 
@@ -46,6 +46,7 @@
       <div class="section-title">启动</div>
       <label class="switch"><input id="autostart" type="checkbox">登录系统后自动启动 LAN Share</label>
       <div class="row" style="margin-top:14px"><button id="copyAddrBtn">复制局域网地址</button><button id="updateBtn">检查更新</button><span id="updateStatus" class="muted small"></span></div>
+      <div id="trayHint" class="muted small" style="margin-top:10px"></div>
     </div>
 
     <div class="card">
@@ -55,6 +56,12 @@
       <div>当前 6 位配对码</div><div id="pairCode" class="code">------</div>
       <div class="row" style="margin:8px 0 14px"><button id="regenPairBtn">重新生成配对码</button></div>
       <div class="section-title">允许访问本机的设备</div><div id="trustedList" class="muted">暂无</div>
+    </div>
+
+    <div class="card full">
+      <div class="row" style="justify-content:space-between"><div><h2 style="margin:0">临时分享链接</h2><div class="muted small" style="margin-top:5px">选中文件后生成 1 分钟～24 小时有效的随机链接；二维码完全离线生成。安全模式下也只放行这一条临时链接。</div></div><button id="shareLinksBtn">刷新</button></div>
+      <div id="shareLinks" class="muted" style="margin-top:12px">暂无临时分享</div>
+      <div id="sharePreview" class="share-preview hidden"></div>
     </div>
   </div>
 
@@ -69,5 +76,6 @@
   </div>
 </div>
 <script src="/assets/app.js"></script>
+<script src="/assets/v07.js"></script>
 </body>
 </html>

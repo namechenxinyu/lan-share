@@ -1,10 +1,21 @@
-# LAN Share 0.6
+# LAN Share 0.7
 
 LAN Share 是一个面向 **Windows 7 / Windows 11 / Deepin / Linux / macOS** 的局域网文件互传工具。
 
 设计目标：不依赖中心服务器、不依赖数据库、不要求 Python/Java/Node 运行时；每台机器运行一个 Go 可执行文件，浏览器就是 UI。
 
 ## 已实现
+
+### V0.7 · Quick Share / LAN AirDrop / Windows tray
+
+- **局域网 AirDrop 模式**：直接把文件拖到设备卡片，不再先从下拉框选目标设备。
+- **临时分享链接**：给共享目录中的单个文件生成随机 URL，有效期可选 1 分钟～24 小时，可随时撤销。
+- **离线二维码**：二维码由 LAN Share 自己用 Go 标准库生成，不访问互联网、不调用第三方二维码服务。
+- 临时分享链接是“单文件能力令牌”：即使开启安全模式，也只放行被分享的那个文件；普通文件列表仍受配对保护。
+- 临时链接继续使用 `http.ServeContent`，因此大文件仍支持 Range / 206 和浏览器断点续传。
+- **Windows 原生托盘**：Win7/Win11 默认显示通知区域图标，双击打开 LAN Share，右键可打开/退出。实现只使用 Win32 syscall，不引入 CGO。
+- Deepin/macOS 继续使用零 CGO 浏览器 UI，避免为了托盘引入桌面运行库。
+- IPv4 地址优先级调整：优先典型 `192.168.x.x` LAN 地址，减少 VPN / Docker 网卡被选为分享二维码地址的概率。
 
 ### V0.4 · 大文件高速与断点
 
@@ -80,6 +91,7 @@ http://本机局域网IP:51888
 -open=true
 -sync=false
 -secure=false
+-tray=true          # Windows 默认 true；其他平台为 no-op
 ```
 
 ## 大文件传输
@@ -186,6 +198,6 @@ scripts/                多平台构建与防火墙脚本
 
 ## 安全边界
 
-LAN Share 0.6 的安全模式主要针对局域网内未授权访问和 Agent-to-Agent 传输内容保护。它不是面向互联网直接暴露设计的公网文件服务器。
+LAN Share 0.7 的安全模式主要针对局域网内未授权访问和 Agent-to-Agent 传输内容保护。它不是面向互联网直接暴露设计的公网文件服务器。
 
 远程浏览器配对后的页面仍使用 HTTP；如果需要抵抗同网段被动嗅探，优先使用本机 Agent 发起的已配对 Agent-to-Agent 传输。未来跨公网使用时应增加受信 CA TLS、签名自动更新和更严格的审计策略。

@@ -237,8 +237,35 @@ func LocalIPv4s() []string {
 			}
 		}
 	}
-	sort.Strings(ips)
+	sort.SliceStable(ips, func(i, j int) bool {
+		si, sj := lanIPScore(net.ParseIP(ips[i])), lanIPScore(net.ParseIP(ips[j]))
+		if si == sj {
+			return ips[i] < ips[j]
+		}
+		return si < sj
+	})
 	return ips
+}
+
+func lanIPScore(ip net.IP) int {
+	ip4 := ip.To4()
+	if ip4 == nil {
+		return 99
+	}
+	switch {
+	case ip4[0] == 192 && ip4[1] == 168:
+		return 0
+	case ip4[0] == 10:
+		return 1
+	case ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31:
+		return 2
+	case ip4[0] == 198 && (ip4[1] == 18 || ip4[1] == 19):
+		return 8
+	case ip4[0] == 169 && ip4[1] == 254:
+		return 9
+	default:
+		return 3
+	}
 }
 
 func IsLocalIP(ip net.IP) bool {

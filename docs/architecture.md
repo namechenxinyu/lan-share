@@ -113,3 +113,19 @@ Initiator                         Receiver
 ### 浏览器远程访问
 
 远程浏览器无法像 Agent 一样安全保存长期 Agent 凭据，因此通过 6 位配对码换取 HttpOnly SameSite Cookie。浏览器与远端 Agent 之间仍是 HTTP；安全模式主要阻止未授权访问。需要抵抗同网段被动嗅探时，应优先使用本机 Agent-to-Agent 路径。
+
+## V0.7 Quick Share / AirDrop
+
+### 设备卡片拖拽
+
+Web UI 的每个发现设备都是 drop target。拖入文件后直接复用 V0.4 的 resumable relay 协议；因此 AirDrop 交互没有引入第二套传输实现，仍具备断点、配对和 AES-GCM 能力。
+
+### 临时分享能力令牌
+
+本机为单个文件创建 256-bit 级随机 token（当前为 32 个十六进制字符），仅保存在进程内存。远程访问 `/s/<token>` 时只解析该 token 对应的文件，不授予共享目录枚举或上传权限。
+
+二维码使用内部 `internal/qrcode` 纯 Go 实现（固定 Version 5-L，足够容纳 LAN URL），直接输出 PNG；无 CDN、无互联网依赖。
+
+### Windows 托盘
+
+Windows 构建通过 `user32.dll` / `shell32.dll` 的 Win32 API 注册通知区域图标；不使用 CGO 或第三方 GUI 框架，因此 Win7 的 Go 1.20 兼容构建不受影响。Deepin/macOS 仍保持浏览器 UI，以维持单文件、零运行时依赖。

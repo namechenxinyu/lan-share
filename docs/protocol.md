@@ -1,6 +1,6 @@
 # LAN Share Protocol
 
-当前应用版本：`0.6.0`  
+当前应用版本：`0.7.0`  
 UDP discovery magic：`LANSHARE/1`
 
 ## HTTP 51888
@@ -162,3 +162,19 @@ Authorization: Bearer <token>
 ```
 
 接收端以 UDP 源 IP 作为实际设备 IP，设备约 12 秒未出现即过期。
+
+## V0.7 Quick Share
+
+以下管理接口只允许本机调用：
+
+- `GET /api/share-links`：列出当前未过期分享。
+- `POST /api/share-links`：创建分享，JSON: `{"name":"file.iso","ttl_seconds":600}`。
+- `DELETE /api/share-links?token=<token>`：立即撤销。
+- `GET /api/share-links/qr?token=<token>`：返回离线生成的 `image/png` QR Code。
+
+公开临时下载：
+
+- `GET|HEAD /s/<random-token>`
+
+Token 仅绑定一个文件并保存在内存中；进程重启即失效。下载继续支持 `Range` / `206`。安全模式开启时，这条 URL 不需要设备配对，但不会授权 `/api/files` 或其他文件。
+
