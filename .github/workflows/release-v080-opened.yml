@@ -45,7 +45,7 @@ jobs:
           if not scripts: raise SystemExit('inline V0.8 JavaScript missing')
           Path('/tmp/v08-inline.js').write_text(scripts[-1],encoding='utf-8')
           PY
-          gh issue comment "$ISSUE" --body '1/4 V0.8 UI 重组完成，SHA256 校验通过。'
+          gh issue comment "$ISSUE" --body '1/4 V0.8 UI 重组完成，SHA256 校验通过。' || true
 
       - name: Setup Go 1.23.2
         uses: actions/setup-go@v5
@@ -63,7 +63,7 @@ jobs:
           go test -race ./...
           go vet ./...
           sh ./scripts/build-modern.sh
-          gh issue comment "$ISSUE" --body '2/4 JS、go test、race、vet、Win11/Linux/macOS 构建通过。'
+          gh issue comment "$ISSUE" --body '2/4 JS、go test、race、vet、Win11/Linux/macOS 构建通过。' || true
 
       - name: Setup Go 1.20.14
         uses: actions/setup-go@v5
@@ -83,7 +83,7 @@ jobs:
           rm -f lan-share-macos-intel lan-share-macos-apple-silicon
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh issue comment "$ISSUE" --body '3/4 Win7 Go 1.20.14 x64/x86 构建和 Release 打包通过。'
+          gh issue comment "$ISSUE" --body '3/4 Win7 Go 1.20.14 x64/x86 构建和 Release 打包通过。' || true
 
       - name: Commit clean source and publish v0.8.0
         env:
@@ -101,14 +101,24 @@ jobs:
           git commit -m 'feat: release LAN Share v0.8.0 user-first UI'
           git push origin HEAD:main
           SHA=$(git rev-parse HEAD)
-          gh release create v0.8.0 dist/* --target "$SHA" --title 'LAN Share v0.8.0' --generate-notes
-          gh issue close "$ISSUE" --comment '4/4 LAN Share v0.8.0 已发布，源码已清理并推送 main，各平台下载文件已上传。'
+          published=0
+          for try in 1 2 3 4; do
+            if gh release view v0.8.0 >/dev/null 2>&1; then
+              if gh release upload v0.8.0 dist/* --clobber; then published=1; break; fi
+            else
+              if gh release create v0.8.0 dist/* --target "$SHA" --title 'LAN Share v0.8.0' --generate-notes; then published=1; break; fi
+            fi
+            sleep 5
+          done
+          test "$published" -eq 1
+          gh issue close "$ISSUE" --comment '4/4 LAN Share v0.8.0 已发布，源码已清理并推送 main，各平台下载文件已上传。' || true
           gh issue close 3 --comment 'V0.8.0 发布完成。' || true
           gh issue close 4 --comment '触发测试完成并已清理临时 Workflow。' || true
+          gh issue close 5 --comment '第一次发布尝试的构建已通过，因 GitHub 临时 504 中断；最终发布已由后续任务完成。' || true
 
       - name: Report failure
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE: ${{ github.event.issue.number }}
-        run: gh issue comment "$ISSUE" --body "V0.8 发布失败，请查看：${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+        run: gh issue comment "$ISSUE" --body "V0.8 发布失败，请查看：${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
