@@ -30,25 +30,32 @@ jobs:
           if ! gh release view "$VERSION" >/dev/null 2>&1; then
             gh release create "$VERSION" --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop drag-and-drop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
           fi
-          gh issue comment 1 --body 'release.yml stage 1/5: release shell ready.' || true
+          gh issue comment 1 --body 'release.yml stage 1/7: release shell ready.' || true
 
-      - name: Setup modern Go
+      - name: Setup modern Go 1.23.2
         uses: actions/setup-go@v5
         with:
-          go-version: stable
+          go-version: '1.23.2'
           cache: false
+
+      - name: Confirm modern Go
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          go version
+          gh issue comment 1 --body "release.yml stage 2/7: modern Go ready: $(go version)." || true
 
       - name: Test and build modern targets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          go version
           grep -q 'const Version = "0.7.0"' internal/app/app.go
           node --check internal/webui/v07.js
           go test ./...
           go vet ./...
+          gh issue comment 1 --body 'release.yml stage 3/7: tests and vet passed.' || true
           sh ./scripts/build-modern.sh
-          gh issue comment 1 --body 'release.yml stage 2/5: modern tests/builds passed.' || true
+          gh issue comment 1 --body 'release.yml stage 4/7: modern platform builds passed.' || true
 
       - name: Setup Go 1.20.14 for Windows 7
         uses: actions/setup-go@v5
@@ -62,7 +69,7 @@ jobs:
         run: |
           go version
           sh ./scripts/build-win7.sh
-          gh issue comment 1 --body 'release.yml stage 3/5: Win7 builds passed.' || true
+          gh issue comment 1 --body "release.yml stage 5/7: Win7 builds passed with $(go version)." || true
 
       - name: Package and checksum
         env:
@@ -74,11 +81,11 @@ jobs:
           rm -f lan-share-macos-intel lan-share-macos-apple-silicon
           sha256sum * > SHA256SUMS.txt
           cd ..
-          gh issue comment 1 --body 'release.yml stage 4/5: packages/checksums ready.' || true
+          gh issue comment 1 --body 'release.yml stage 6/7: packages and SHA256 checksums ready.' || true
 
       - name: Upload assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload v0.7.0 dist/* --clobber
-          gh issue close 1 --comment 'release.yml stage 5/5: v0.7.0 assets uploaded successfully.' || true
+          gh issue close 1 --comment 'release.yml stage 7/7: v0.7.0 assets uploaded successfully.' || true
