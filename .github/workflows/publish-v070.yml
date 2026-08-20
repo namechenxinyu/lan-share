@@ -1,0 +1,36 @@
+name: Publish v0.7.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v070.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify source version
+        run: |
+          grep -q 'const Version = "0.7.0"' internal/app/app.go
+          go test ./...
+
+      - name: Create v0.7.0 tag
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git rev-parse v0.7.0 >/dev/null 2>&1; then
+            echo 'tag v0.7.0 already exists'
+          else
+            git tag -a v0.7.0 -m 'LAN Share v0.7.0'
+            git push origin v0.7.0
+          fi
