@@ -26,7 +26,7 @@ import (
 	"github.com/namechenxinyu/lan-share/internal/webui"
 )
 
-const Version = "0.8.0"
+const Version = "0.9.0"
 
 const maxChunkSize = 64 << 20
 
@@ -271,6 +271,13 @@ func (a *App) handleFiles(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), 500)
 			return
 		}
+		// V0.9 keeps the legacy array response unless pagination is explicitly requested.
+		// This lets older LAN Share peers continue to browse a V0.9 machine.
+		if r.URL.Query().Get("paged") == "1" || r.URL.Query().Get("page") != "" || r.URL.Query().Get("page_size") != "" || r.URL.Query().Get("q") != "" {
+			page, pageSize, keyword := parsePage(r)
+			writeJSON(w, 200, pageSlice(filterFiles(files, keyword), page, pageSize))
+			return
+		}
 		writeJSON(w, 200, files)
 		return
 	}
@@ -416,7 +423,14 @@ func (a *App) handleHistory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "local management only", 403)
 		return
 	}
-	writeJSON(w, 200, a.history.list())
+	records := a.history.list()
+	if r.URL.Query().Get("paged") == "1" || r.URL.Query().Get("page") != "" || r.URL.Query().Get("page_size") != "" || r.URL.Query().Get("q") != "" || r.URL.Query().Get("direction") != "" || r.URL.Query().Get("status") != "" {
+		page, pageSize, keyword := parsePage(r)
+		records = filterHistory(records, keyword, r.URL.Query().Get("direction"), r.URL.Query().Get("status"))
+		writeJSON(w, 200, pageSlice(records, page, pageSize))
+		return
+	}
+	writeJSON(w, 200, records)
 }
 
 func isLocalRequest(r *http.Request) bool {

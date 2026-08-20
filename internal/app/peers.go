@@ -183,12 +183,39 @@ func (a *App) handlePeerFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	deviceID := strings.TrimSpace(r.URL.Query().Get("device_id"))
+	// Always request the legacy array form from the peer. V0.9 paginates locally so
+	// a V0.9 machine can browse V0.7/V0.8 peers without requiring them to upgrade.
 	req, err := a.peerRequest(r, deviceID, http.MethodGet, "/api/files", nil)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 		return
 	}
-	a.forwardPeerResponse(w, req)
+	resp, err := a.peerClient.Do(req)
+	if err != nil {
+		http.Error(w, "peer request failed: "+err.Error(), 502)
+		return
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
+	if err != nil {
+		http.Error(w, err.Error(), 502)
+		return
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if ct := resp.Header.Get("Content-Type"); ct != "" {
+			w.Header().Set("Content-Type", ct)
+		}
+		w.WriteHeader(resp.StatusCode)
+		_, _ = w.Write(body)
+		return
+	}
+	var files []FileInfo
+	if err := json.Unmarshal(body, &files); err != nil {
+		http.Error(w, "invalid peer file list", 502)
+		return
+	}
+	page, pageSize, keyword := parsePage(r)
+	writeJSON(w, 200, pageSlice(filterFiles(files, keyword), page, pageSize))
 }
 
 func (a *App) handleParallelPull(w http.ResponseWriter, r *http.Request) {
