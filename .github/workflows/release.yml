@@ -19,12 +19,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Prepare release shell
+      - name: Prepare release shell and align tag
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git tag -fa v0.7.0 -m 'LAN Share v0.7.0' HEAD
+          git push --force origin refs/tags/v0.7.0
           gh release view v0.7.0 >/dev/null 2>&1 || gh release create v0.7.0 --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
-          gh issue comment 1 --body 'release diag A: shell ready.' || true
+          gh issue comment 1 --body 'release retry: tag aligned to fixed main; release shell ready.' || true
 
       - uses: actions/setup-go@v5
         with:
@@ -42,16 +46,14 @@ jobs:
             gh issue comment 1 --body-file /tmp/issue.txt || true
             exit 1
           }
-          echo "$(go version)" > /tmp/go.log
           grep -q 'const Version = "0.7.0"' internal/app/app.go > /tmp/version.log 2>&1 || report_fail version /tmp/version.log
           node --check internal/webui/v07.js > /tmp/node.log 2>&1 || report_fail node-check /tmp/node.log
-          gh issue comment 1 --body 'release diag B: version and JavaScript check passed.' || true
           go test ./... > /tmp/test.log 2>&1 || report_fail go-test /tmp/test.log
-          gh issue comment 1 --body 'release diag C: go test passed.' || true
+          gh issue comment 1 --body 'release retry: go test passed.' || true
           go vet ./... > /tmp/vet.log 2>&1 || report_fail go-vet /tmp/vet.log
-          gh issue comment 1 --body 'release diag D: go vet passed.' || true
+          gh issue comment 1 --body 'release retry: go vet passed.' || true
           sh ./scripts/build-modern.sh > /tmp/build.log 2>&1 || report_fail modern-build /tmp/build.log
-          gh issue comment 1 --body 'release diag E: modern builds passed.' || true
+          gh issue comment 1 --body 'release retry: modern platform builds passed.' || true
 
       - uses: actions/setup-go@v5
         with:
@@ -68,7 +70,7 @@ jobs:
             gh issue comment 1 --body-file /tmp/issue.txt || true
             exit 1
           fi
-          gh issue comment 1 --body 'release diag F: Win7 builds passed.' || true
+          gh issue comment 1 --body 'release retry: Win7 builds passed.' || true
 
       - name: Package and upload
         env:
