@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup modern Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Build modern targets
+        run: ./scripts/build-modern.sh
+
+      - name: Setup Go 1.20.14 for Windows 7
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20.14'
+          cache: false
+
+      - name: Build Windows 7 targets
+        run: ./scripts/build-win7.sh
+
+      - name: Checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --generate-notes --title "LAN Share ${GITHUB_REF_NAME}"
