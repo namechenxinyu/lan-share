@@ -2,7 +2,7 @@ name: Release Request
 
 on:
   issues:
-    types: [opened]
+    types: [opened, reopened]
 
 permissions:
   contents: write
@@ -16,6 +16,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Create release shell first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v0.7.0 >/dev/null 2>&1; then
+            echo 'v0.7.0 release already exists'
+          else
+            gh release create v0.7.0 --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop drag-and-drop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
+          fi
 
       - name: Setup modern Go
         uses: actions/setup-go@v5
@@ -50,23 +60,19 @@ jobs:
           rm -f lan-share-macos-intel lan-share-macos-apple-silicon
           sha256sum * > SHA256SUMS.txt
 
-      - name: Create tag and release
+      - name: Upload release assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if ! git rev-parse v0.7.0 >/dev/null 2>&1; then
-            git tag -a v0.7.0 -m 'LAN Share v0.7.0'
-            git push origin v0.7.0
-          fi
-          if gh release view v0.7.0 >/dev/null 2>&1; then
-            gh release upload v0.7.0 dist/* --clobber
-          else
-            gh release create v0.7.0 dist/* --generate-notes --title 'LAN Share v0.7.0'
-          fi
+        run: gh release upload v0.7.0 dist/* --clobber
 
-      - name: Close release request
+      - name: Close successful request
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh issue close ${{ github.event.issue.number }} --comment 'v0.7.0 release published.'
+        run: gh issue close ${{ github.event.issue.number }} --comment 'v0.7.0 release published with all build assets.'
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment ${{ github.event.issue.number }} --body 'v0.7.0 release shell was requested, but one of the build/upload steps failed. Check the Release Request workflow run for the failing step.'
