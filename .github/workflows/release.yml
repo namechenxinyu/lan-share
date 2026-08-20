@@ -46,7 +46,7 @@ jobs:
           node --check internal/webui/v07.js
           go test ./...
           go vet ./...
-          ./scripts/build-modern.sh
+          sh ./scripts/build-modern.sh
           gh issue comment 1 --body 'release.yml stage 2/5: modern tests/builds passed.' || true
 
       - name: Setup Go 1.20.14 for Windows 7
@@ -59,7 +59,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ./scripts/build-win7.sh
+          sh ./scripts/build-win7.sh
           gh issue comment 1 --body 'release.yml stage 3/5: Win7 builds passed.' || true
 
       - name: Package and checksum
