@@ -1,0 +1,138 @@
+name: LAN Share v0.9.0 one-time release
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  release:
+    if: github.event.issue.title == '[release-v090-final]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Materialize verified V0.9 source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .release-staging/v09/chunk.* | tr -d '\n' | base64 -d > /tmp/v09-changes.tgz
+          echo 'a58fee0806cf93c07a8daeda4d4e81db2f55be8888a80cbe2df984ee6dd3891c  /tmp/v09-changes.tgz' | sha256sum -c -
+          tar -xzf /tmp/v09-changes.tgz
+          grep -q 'const Version = "0.9.0"' internal/app/app.go
+          echo '8d0d25aa343929211fe7daf7ae90bda7c4bea12ae19cff40d02898a68e68bc5f  internal/webui/index.html' | sha256sum -c -
+          echo '03a5b8f6a97b2af8f2166830e14cc00bacd19d2fd63b597b2d3f4bea57f1c730  internal/webui/app.js' | sha256sum -c -
+          node --check internal/webui/app.js
+          gh issue comment "$ISSUE" --body '1/5 V0.9 源码重组、SHA256 和 JavaScript 校验通过。' || true
+
+      - name: Setup modern Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
+          cache: false
+
+      - name: Test and build modern platforms
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./...
+          go test -race ./...
+          go vet ./...
+          sh ./scripts/build-modern.sh
+          gh issue comment "$ISSUE" --body '2/5 go test、Race、Vet 与 Win11/Linux/macOS 构建通过。' || true
+
+      - name: Setup Go 1.20.14 for Windows 7
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20.14'
+          cache: false
+
+      - name: Test Go 1.20 and build Windows 7
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          go test ./...
+          sh ./scripts/build-win7.sh
+          cd dist
+          zip -9 lan-share-macos-intel.zip lan-share-macos-intel
+          zip -9 lan-share-macos-apple-silicon.zip lan-share-macos-apple-silicon
+          rm -f lan-share-macos-intel lan-share-macos-apple-silicon
+          sha256sum * > SHA256SUMS.txt
+          cd ..
+          gh issue comment "$ISSUE" --body '3/5 Go 1.20.14 测试、Win7 x64/x86 构建和全部 Release 资产打包通过。' || true
+
+      - name: Commit V0.9 product source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .release-staging/v09
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md CHANGELOG.md \
+            internal/app/app.go internal/app/peers.go \
+            internal/app/pagination.go internal/app/pagination_test.go \
+            internal/webui/index.html internal/webui/style.css \
+            internal/webui/app.js internal/webui/web.go
+          git add -A .release-staging/v09
+          git commit -m 'feat: release LAN Share v0.9.0 workspace UI'
+          git push origin HEAD:main
+          PRODUCT_SHA=$(git rev-parse HEAD)
+          gh issue comment "$ISSUE" --body "4/5 V0.9 产品源码已推送 main，临时分片已清除。CLEANUP_READY ${PRODUCT_SHA}" || true
+
+      - name: Wait for one-time workflow cleanup and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleaned=0
+          for i in $(seq 1 90); do
+            if ! gh api "repos/${GITHUB_REPOSITORY}/contents/.github/workflows/release-v090-once.yml?ref=main" >/dev/null 2>&1; then
+              cleaned=1
+              break
+            fi
+            sleep 4
+          done
+          test "$cleaned" -eq 1
+          git fetch origin main --tags --force
+          CLEAN_SHA=$(git rev-parse origin/main)
+          git show "${CLEAN_SHA}:internal/app/app.go" | grep -q 'const Version = "0.9.0"'
+          if git rev-parse v0.9.0 >/dev/null 2>&1; then git tag -d v0.9.0; fi
+          git tag v0.9.0 "$CLEAN_SHA"
+          git push --force origin refs/tags/v0.9.0
+          published=0
+          for try in 1 2 3 4; do
+            if gh release view v0.9.0 >/dev/null 2>&1; then
+              if gh release upload v0.9.0 dist/* --clobber; then published=1; break; fi
+            else
+              if gh release create v0.9.0 dist/* --verify-tag --title 'LAN Share v0.9.0' --generate-notes; then published=1; break; fi
+            fi
+            sleep 5
+          done
+          test "$published" -eq 1
+          gh issue close "$ISSUE" --comment "5/5 LAN Share v0.9.0 已从干净提交 ${CLEAN_SHA} 发布，8 个跨平台下载资产已上传。" || true
+
+      - name: Report failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ github.event.issue.number }}
+        run: gh issue comment "$ISSUE" --body "V0.9 发布失败，请查看 ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
