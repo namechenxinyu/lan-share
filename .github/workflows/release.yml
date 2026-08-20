@@ -4,15 +4,33 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
+    paths:
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare release shell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=v0.7.0
+          if ! gh release view "$VERSION" >/dev/null 2>&1; then
+            gh release create "$VERSION" --target main --title 'LAN Share v0.7.0' --notes 'LAN Share v0.7.0: LAN AirDrop drag-and-drop, temporary share links with offline QR codes, Windows native tray, resumable large-file transfer, pairing and AES-256-GCM security.'
+          fi
+          gh issue comment 1 --body 'release.yml stage 1/5: release shell ready.' || true
 
       - name: Setup modern Go
         uses: actions/setup-go@v5
@@ -20,11 +38,16 @@ jobs:
           go-version: stable
           cache: true
 
-      - name: Test
-        run: go test ./...
-
-      - name: Build modern targets
-        run: ./scripts/build-modern.sh
+      - name: Test and build modern targets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          grep -q 'const Version = "0.7.0"' internal/app/app.go
+          node --check internal/webui/v07.js
+          go test ./...
+          go vet ./...
+          ./scripts/build-modern.sh
+          gh issue comment 1 --body 'release.yml stage 2/5: modern tests/builds passed.' || true
 
       - name: Setup Go 1.20.14 for Windows 7
         uses: actions/setup-go@v5
@@ -33,14 +56,27 @@ jobs:
           cache: false
 
       - name: Build Windows 7 targets
-        run: ./scripts/build-win7.sh
-
-      - name: Checksums
-        run: |
-          cd dist
-          sha256sum * > SHA256SUMS.txt
-
-      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" dist/* --generate-notes --title "LAN Share ${GITHUB_REF_NAME}"
+        run: |
+          ./scripts/build-win7.sh
+          gh issue comment 1 --body 'release.yml stage 3/5: Win7 builds passed.' || true
+
+      - name: Package and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          zip -9 lan-share-macos-intel.zip lan-share-macos-intel
+          zip -9 lan-share-macos-apple-silicon.zip lan-share-macos-apple-silicon
+          rm -f lan-share-macos-intel lan-share-macos-apple-silicon
+          sha256sum * > SHA256SUMS.txt
+          cd ..
+          gh issue comment 1 --body 'release.yml stage 4/5: packages/checksums ready.' || true
+
+      - name: Upload assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload v0.7.0 dist/* --clobber
+          gh issue close 1 --comment 'release.yml stage 5/5: v0.7.0 assets uploaded successfully.' || true
