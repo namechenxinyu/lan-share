@@ -29,24 +29,24 @@ jobs:
           python3 - <<'PY'
           import base64, json, os, urllib.request
           files = {
-            '17ea946170341bb2ba5389ae1878b89e6f719dd4': 'README.md',
-            '06932945473d3ff8f46cadf6224f42ac6e84ced0': 'CHANGELOG.md',
-            '2c9372991779917073d149391ddd129701daad0d': 'cmd/lan-share/main.go',
-            '8f5ef76047a37629ced215272284281f8fb96c74': 'docs/architecture.md',
-            'b237ad9c99b2fbd5203b458d5e3c88afb7c3d6d1': 'docs/protocol.md',
-            '43c9ef1e544eff9ba365078a1ec8bed3aa214144': 'internal/app/app.go',
-            '20ce4abaf5de883576793010ddf868e460e38a2b': 'internal/app/sharelinks.go',
-            '843a66f33c7b045432476f20b8cd411fa17b7a07': 'internal/app/sharelinks_test.go',
-            '4c8b83866e7fecea8c81aaea32b4dea9c4db08c9': 'internal/config/config.go',
-            'a7b6c0020851f52fa77fba43e1cc366c0a047963': 'internal/discovery/discovery.go',
-            '057444f29ea1d3ec902abe644bf70bf1753f8aac': 'internal/platform/tray_stub.go',
-            '92e6c81675dcc0f4ba41ce7aeb4668f1b377c54e': 'internal/platform/tray_windows.go',
-            '746ddae442d0f1b4b41471c96f0d31382452947f': 'internal/qrcode/qrcode.go',
-            '582b4da1513bd5c0b815a69fb100bfda57e419f9': 'internal/qrcode/qrcode_test.go',
-            '3b2396be1215653b3fe74387b2098b79e90a1902': 'internal/webui/index.html',
-            '67c19e4a0f7d308071972bb757381357a4bd89ba': 'internal/webui/style.css',
-            '1d769bb8c004de56955aeb4decd4b916e7d2ecbf': 'internal/webui/v07.js',
-            '363260db599908abb71370243ec561776277c636': 'internal/webui/web.go',
+            'c4a7b90d9eec4752ac9b391b369a3e00d345df93': 'README.md',
+            'f43f7db4051f8fd16519697ddd618b8d084afe2d': 'CHANGELOG.md',
+            '4ad7c9cc907b08ed1f6c74675d8a91e3f0b0cd86': 'cmd/lan-share/main.go',
+            '8b6bbcee6746ac25e1a7a629a7e0dcc526c37ee0': 'docs/architecture.md',
+            '459b66db1655a0fdd137b66dd0872051a3db1822': 'docs/protocol.md',
+            '30d4d9e36c44616f015ff3d1a14f9bfbb648c113': 'internal/app/app.go',
+            'aca96b458b04f4de613e88a5c3ebca05f427e692': 'internal/app/sharelinks.go',
+            '2e9ce4ceabef93aafb18db63f6cf9992425b4ade': 'internal/app/sharelinks_test.go',
+            'a16e72b84fd2c33edf6822fdf4b30f9b828359ba': 'internal/config/config.go',
+            '590fe11c899e6ef1452bfe3d0811c175b58cbff3': 'internal/discovery/discovery.go',
+            '3d599390d2fb47db3b36cb002d3b1e3bc575697f': 'internal/platform/tray_stub.go',
+            'a4f2f4120582e8a864190a27ead3182fbcbb2a05': 'internal/platform/tray_windows.go',
+            '115488f2e6c56f966d1354be0946aabf097e4c47': 'internal/qrcode/qrcode.go',
+            '362ed9d7e9af70912958f8d6c1e4afd697a79f1f': 'internal/qrcode/qrcode_test.go',
+            'd21d353ad61ec63d5b274dff30920b52a25f3823': 'internal/webui/index.html',
+            '4a041240695e416e9d00c813d4700890a1482640': 'internal/webui/style.css',
+            '249b4b9c03db48ac1dde0ccf53a2a5632e19aedb': 'internal/webui/v07.js',
+            'e8e248fd541927b8a556d0fbe4c666fbdf6024c9': 'internal/webui/web.go',
           }
           token = os.environ['GH_TOKEN']
           repo = os.environ['GITHUB_REPOSITORY']
@@ -65,6 +65,7 @@ jobs:
           PY
       - name: Verify v0.7
         run: |
+          grep -q 'const Version = "0.7.0"' internal/app/app.go
           node --check internal/webui/v07.js
           go test ./...
           go test -race ./...
@@ -74,14 +75,18 @@ jobs:
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o /tmp/lan-share-linux ./cmd/lan-share
           CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -trimpath -o /tmp/lan-share-macos-intel ./cmd/lan-share
           CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -trimpath -o /tmp/lan-share-macos-arm64 ./cmd/lan-share
-      - name: Commit v0.7
+      - name: Commit v0.7 and tag v0.7.0
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add README.md CHANGELOG.md cmd docs internal
-          if git diff --cached --quiet; then
-            echo 'v0.7 already applied'
-            exit 0
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat: release LAN Share v0.7'
+            git push origin HEAD:main
           fi
-          git commit -m 'feat: release LAN Share v0.7'
-          git push origin HEAD:main
+          git fetch origin main --tags
+          git reset --hard origin/main
+          if ! git rev-parse v0.7.0 >/dev/null 2>&1; then
+            git tag -a v0.7.0 -m 'LAN Share v0.7.0'
+            git push origin v0.7.0
+          fi
