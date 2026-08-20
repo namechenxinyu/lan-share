@@ -34,3 +34,5 @@ jobs:
             git tag -a v0.7.0 -m 'LAN Share v0.7.0'
             git push origin v0.7.0
           fi
+
+# retrigger after v0.7 source landed on main
