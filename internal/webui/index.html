@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>LAN Share · 局域网文件中转站</title>
 <link rel="stylesheet" href="/assets/style.css">
 </head>
@@ -20,14 +20,14 @@
       <button data-page="settings"><span class="nav-no">04</span><span>设置</span><b>›</b></button>
     </nav>
     <div class="sidebar-bottom">
-      <div class="network-card"><i></i><div><strong id="sideNetwork">局域网连接中</strong><span id="sideIP">--</span></div></div>
+      <div class="compat-state"><strong id="sideNetwork">局域网连接中</strong><span id="sideIP">--</span></div>
       <div class="version" id="sideVersion">LAN Share</div>
     </div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div></div>
+      <div class="mobile-brand">LAN Share</div>
       <div class="top-actions">
         <div class="network-pill"><i></i><span>局域网已连接</span><small id="topIP">--</small></div>
         <div class="avatar" id="avatar">L</div>
@@ -35,9 +35,9 @@
     </header>
 
     <section class="page active" id="page-space">
-      <div class="page-head"><span>局域网工作台 / 我的空间</span><h1>我的空间</h1><p>上传文件、管理共享内容并创建下载链接</p></div>
+      <div class="page-head"><span>局域网工作台 / 我的空间</span><h1>我的空间</h1><p>上传文件并管理本机共享内容</p></div>
       <div class="card upload-card">
-        <div class="card-title-row"><div><span class="eyebrow">快速开始</span><h2>上传并共享文件</h2><p>文件仅在局域网内传输，不经过云端。上传后可生成下载链接或二维码。</p></div><span class="safe-badge" id="spaceSecurity">● 安全连接</span></div>
+        <div class="card-title-row"><div><span class="eyebrow">快速开始</span><h2>上传文件</h2><p>拖入文件即可加入共享目录，数据只在局域网内传输。</p></div><span class="safe-badge" id="spaceSecurity">● 安全连接</span></div>
         <input id="localFilePicker" type="file" multiple hidden>
         <div class="dropzone" id="localDrop"><div class="drop-icon">⇧</div><strong>拖拽文件到这里</strong><span>或点击选择文件 · 支持多文件和大文件断点续传</span><button class="primary" id="chooseLocalFiles">选择文件</button></div>
         <div class="upload-progress hidden" id="spaceProgress"><div><strong id="spaceProgressName">准备传输</strong><span id="spaceProgressText">0%</span></div><div class="progress"><i id="spaceProgressBar"></i></div><small id="spaceProgressSpeed"></small></div>
@@ -46,7 +46,7 @@
 
       <div class="card">
         <div class="card-title-row"><div><span class="eyebrow">我的文件</span><h2>共享文件 <em class="count" id="fileCount">0</em></h2></div><button id="refreshFiles">刷新</button></div>
-        <div class="toolbar"><div class="search"><span>⌕</span><input id="fileSearch" placeholder="搜索共享文件"></div><select id="filePageSize" class="page-size"><option>10</option><option>20</option><option>50</option><option>100</option></select></div>
+        <div class="toolbar"><div class="search"><span>⌕</span><input id="fileSearch" placeholder="搜索共享文件"></div><select id="filePageSize" class="page-size" aria-label="每页数量"><option>10</option><option>20</option><option>50</option><option>100</option></select></div>
         <div class="table-wrap"><table><thead><tr><th>文件名</th><th>大小</th><th>更新时间</th><th class="actions-col">操作</th></tr></thead><tbody id="fileRows"></tbody></table></div>
         <div class="pager" id="filePager"></div>
       </div>
@@ -64,7 +64,7 @@
         <div class="card remote-panel">
           <div class="card-title-row"><div><span class="eyebrow">共享内容</span><h2 id="remoteTitle">请选择设备</h2><p id="remoteSubtitle">选择左侧设备后查看它的共享文件</p></div><div class="remote-actions"><input id="remoteUploadPicker" type="file" multiple hidden><button class="primary" id="uploadToPeer" disabled>上传文件</button></div></div>
           <div class="upload-progress hidden" id="peerProgress"><div><strong id="peerProgressName">准备传输</strong><span id="peerProgressText">0%</span></div><div class="progress"><i id="peerProgressBar"></i></div><small id="peerProgressSpeed"></small></div>
-          <div class="toolbar"><div class="search"><span>⌕</span><input id="remoteSearch" placeholder="搜索该设备共享文件" disabled></div><select id="remotePageSize" class="page-size"><option>10</option><option>20</option><option>50</option></select></div>
+          <div class="toolbar"><div class="search"><span>⌕</span><input id="remoteSearch" placeholder="搜索该设备共享文件" disabled></div><select id="remotePageSize" class="page-size" aria-label="每页数量"><option>10</option><option>20</option><option>50</option></select></div>
           <div class="remote-empty" id="remoteEmpty"><div>▣</div><strong>还没有选择设备</strong><span>从左侧选择一台在线设备</span></div>
           <div class="remote-files hidden" id="remoteFiles"><div class="file-cards" id="remoteRows"></div><div class="pager" id="remotePager"></div></div>
         </div>
@@ -72,10 +72,10 @@
     </section>
 
     <section class="page" id="page-transfers">
-      <div class="page-head"><span>局域网工作台 / 最近传输</span><h1>最近传输</h1><p>查看发送和接收记录</p></div>
+      <div class="page-head"><span>局域网工作台 / 最近传输</span><h1>最近传输</h1><p>查看发送和接收历史</p></div>
       <div class="card">
-        <div class="card-title-row"><div><span class="eyebrow">活动记录</span><h2>最近传输</h2></div><span class="muted" id="historyTotal">共 0 条</span></div>
-        <div class="toolbar multi"><div class="search"><span>⌕</span><input id="historySearch" placeholder="搜索文件或设备"></div><select id="historyDirection"><option value="">全部方向</option><option value="send">发送</option><option value="pull">接收</option><option value="receive">接收</option></select><select id="historyStatus"><option value="">全部状态</option><option value="completed">已完成</option></select><select id="historyPageSize" class="page-size"><option>10</option><option>20</option><option>50</option></select></div>
+        <div class="card-title-row"><div><span class="eyebrow">活动记录</span><h2>传输记录</h2></div><span class="muted" id="historyTotal">共 0 条</span></div>
+        <div class="toolbar multi"><div class="search"><span>⌕</span><input id="historySearch" placeholder="搜索文件或设备"></div><select id="historyDirection"><option value="">全部方向</option><option value="send">发送</option><option value="pull">接收</option><option value="receive">接收</option></select><select id="historyStatus"><option value="">全部状态</option><option value="completed">已完成</option></select><select id="historyPageSize" class="page-size" aria-label="每页数量"><option>10</option><option>20</option><option>50</option></select></div>
         <div class="table-wrap"><table><thead><tr><th>方向</th><th>文件</th><th>设备</th><th>大小</th><th>状态</th><th>速度</th><th>时间</th></tr></thead><tbody id="historyRows"></tbody></table></div>
         <div class="pager" id="historyPager"></div>
       </div>
@@ -84,13 +84,13 @@
     <section class="page" id="page-settings">
       <div class="page-head"><span>局域网工作台 / 设置</span><h1>设置</h1><p>配置设备、共享目录与访问安全</p></div>
       <div class="settings-layout">
-        <div class="card"><span class="eyebrow">设备设置</span><h2>本机设置</h2>
+        <div class="card"><span class="eyebrow">基础设置</span><h2>本机设置</h2>
           <div class="field"><label>设备名称</label><input id="deviceName" maxlength="64"></div>
           <div class="field"><label>共享目录</label><div class="inline"><input id="shareDir"><button id="openShareDir">打开</button></div><small>切换到已有目录后，其中现有文件会立即加入共享，无需重新上传。</small></div>
           <label class="check"><input id="autostart" type="checkbox"> 登录系统后自动启动 LAN Share</label>
           <div class="button-row"><button class="primary" id="saveSettings">保存设置</button><button id="checkUpdate">检查更新</button><span class="muted" id="updateText"></span></div>
         </div>
-        <div class="card"><span class="eyebrow">访问控制</span><h2>安全与配对</h2>
+        <div class="card"><span class="eyebrow">安全设置</span><h2>安全与配对</h2>
           <div class="security-switch"><div><strong id="securityLabel">安全模式</strong><span>开启后，仅已配对设备可浏览共享文件和上传。</span></div><label class="toggle"><input id="secureMode" type="checkbox"><i></i></label></div>
           <div class="pair-code"><span>当前配对码</span><strong id="pairCode">------</strong><button id="copyPairCode">复制</button><button id="regenPairCode">重新生成</button></div>
           <div class="trusted-head"><strong>已授权设备</strong><span class="muted" id="trustedCount">0 台</span></div><div id="trustedList" class="trusted-list"></div>
