@@ -6,6 +6,15 @@ import (
 	"testing"
 )
 
+func TestDefaultPorts(t *testing.T) {
+	if DefaultHTTPPort != 18888 {
+		t.Fatalf("DefaultHTTPPort=%d want=18888", DefaultHTTPPort)
+	}
+	if DefaultDiscoveryPort != 51889 {
+		t.Fatalf("DefaultDiscoveryPort=%d want=51889", DefaultDiscoveryPort)
+	}
+}
+
 func TestPrepareShareDirCreatesDirectory(t *testing.T) {
 	p := filepath.Join(t.TempDir(), "new", "share")
 	got, err := PrepareShareDir(p)
