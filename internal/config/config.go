@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DefaultHTTPPort      = 51888
+	DefaultHTTPPort      = 18888
 	DefaultDiscoveryPort = 51889
 )
 
