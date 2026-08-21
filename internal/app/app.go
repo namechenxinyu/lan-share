@@ -26,7 +26,7 @@ import (
 	"github.com/namechenxinyu/lan-share/internal/webui"
 )
 
-const Version = "0.9.0"
+const Version = "0.9.1"
 
 const maxChunkSize = 64 << 20
 
