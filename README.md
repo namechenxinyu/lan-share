@@ -1,4 +1,4 @@
-# LAN Share 0.9.2
+# LAN Share 0.9.3
 
 LAN Share 是一个面向 **Windows 7 / Windows 11 / Deepin / Linux / macOS** 的轻量局域网文件分享工具。
 
@@ -15,6 +15,12 @@ V0.9.2 修复部分 Windows 机器上默认 TCP 端口 `51888` 无法绑定、�
 - 如果端口被其他程序占用或被系统保留，会输出明确错误，并提示使用 `-port <port>` 指定其他端口。
 
 V0.9.1 的 Responsive UI、分页、搜索、远程文件浏览、上传/下载、二维码、安全配对和大文件能力全部保留。
+
+## V0.9.3 · Windows Upload Hotfix
+
+- 修复 Windows 下上传临时文件句柄未关闭，导致完成阶段 rename 失败。
+- 连续本机上传和附近设备上传使用同一修复路径。
+- 新增 Windows CI 回归测试，防止该类句柄问题再次出现。
 
 ## 核心能力
 
@@ -104,4 +110,4 @@ GO120=/path/to/go1.20.14/bin/go sh ./scripts/build-win7.sh
 
 ## 发布
 
-仓库使用 GitHub Releases 发布各平台可执行文件。正式 Tag（例如 `v0.9.2`）会构建 Windows、Win7、Linux、macOS 资产并生成 `SHA256SUMS.txt`。
+仓库使用 GitHub Releases 发布各平台可执行文件。正式 Tag（例如 `v0.9.3`）会构建 Windows、Win7、Linux、macOS 资产并生成 `SHA256SUMS.txt`。
