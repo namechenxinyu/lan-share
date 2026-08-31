@@ -1,0 +1,80 @@
+name: Publish v0.9.3 once
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  windows-regression:
+    if: github.event.issue.title == '[publish-v093]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 97cffe45c6920abead112f6a89a3c1ba6120df33
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - name: Windows tests
+        shell: powershell
+        run: |
+          go test ./...
+          go vet ./...
+
+  publish:
+    if: github.event.issue.title == '[publish-v093]'
+    needs: windows-regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 97cffe45c6920abead112f6a89a3c1ba6120df33
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
+          cache: false
+      - name: Verify and build modern targets
+        run: |
+          node --check internal/webui/app.js
+          go test ./...
+          go vet ./...
+          sh ./scripts/build-modern.sh
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.20.14'
+          cache: false
+      - name: Verify Go 1.20.14 and build Win7 targets
+        run: |
+          go test ./...
+          go vet ./...
+          sh ./scripts/build-win7.sh
+      - name: Package assets
+        run: |
+          cd dist
+          zip -9 lan-share-macos-intel.zip lan-share-macos-intel
+          zip -9 lan-share-macos-apple-silicon.zip lan-share-macos-apple-silicon
+          rm -f lan-share-macos-intel lan-share-macos-apple-silicon
+          sha256sum * > SHA256SUMS.txt
+      - name: Create clean tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git rev-parse v0.9.3 >/dev/null 2>&1; then
+            git tag -a v0.9.3 97cffe45c6920abead112f6a89a3c1ba6120df33 -m "LAN Share v0.9.3"
+            git push origin refs/tags/v0.9.3
+          fi
+          if gh release view v0.9.3 >/dev/null 2>&1; then
+            gh release upload v0.9.3 dist/* --clobber
+          else
+            gh release create v0.9.3 dist/* --verify-tag --generate-notes --title "LAN Share v0.9.3"
+          fi
+          gh issue comment ${{ github.event.issue.number }} --body "LAN Share v0.9.3 已从干净提交 97cffe45c6920abead112f6a89a3c1ba6120df33 发布，Windows 回归测试与跨平台构建全部通过。"
+          gh issue close ${{ github.event.issue.number }} --reason completed
