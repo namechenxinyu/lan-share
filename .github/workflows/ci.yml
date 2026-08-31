@@ -27,6 +27,21 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+  windows-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: false
+      - name: Windows upload finalize regression
+        shell: powershell
+        run: go test ./...
+      - name: Vet
+        shell: powershell
+        run: go vet ./...
+
   cross-build:
     runs-on: ubuntu-latest
     steps:
