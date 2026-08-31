@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.3
+
+- 修复 Windows 下分块上传初始化阶段遗留未关闭文件句柄，导致完成上传时 `.part` 重命名失败的问题。
+- 修复连续本地上传与“附近设备”上传共同触发的 `The process cannot access the file because it is being used by another process`。
+- 新增 Windows 专用回归测试，验证 upload init 后临时文件可以立即 rename/finalize。
+- 保持 V0.9.2 的默认 HTTP 18888、UDP discovery 51889 及传输协议不变。
+
 ## 0.9.2
 
 - 修复部分 Windows 环境中默认 TCP `51888` 位于动态/保留端口区间而导致启动后立即 `bind` 失败的问题；默认 HTTP 端口调整为 `18888`。

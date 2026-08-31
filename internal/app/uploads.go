@@ -104,7 +104,11 @@ func (a *App) initUpload(body uploadInitRequest, peer string) (*uploadSession, e
 	} else if !os.IsNotExist(err) {
 		return nil, err
 	}
-	if _, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600); err != nil {
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return nil, err
+	}
+	if err := f.Close(); err != nil {
 		return nil, err
 	}
 	s := &uploadSession{ID: body.ID, Name: name, Size: body.Size, Path: path, Dir: dir, Offset: offset, Started: time.Now(), Peer: peer, Resumed: resumed}
